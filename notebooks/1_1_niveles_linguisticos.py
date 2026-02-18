@@ -14,10 +14,10 @@
 # ---
 
 # + [markdown] id="76b3a996-772a-4be8-a8eb-f1e9ae67d03e" editable=true slideshow={"slide_type": "slide"}
-# # 1. Niveles Lingüísticos
+# # 1.1 Niveles Lingüísticos I
 
 # + [markdown] editable=true slideshow={"slide_type": ""}
-# <a target="_blank" href="https://colab.research.google.com/github/umoqnier/cl-2026-2-lab/blob/main/notebooks/1_niveles_linguisticos.ipynb">
+# <a target="_blank" href="https://colab.research.google.com/github/umoqnier/cl-2026-2-lab/blob/main/notebooks/1_1_niveles_linguisticos.ipynb">
 #   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 # </a>
 
@@ -95,9 +95,15 @@ from sklearn_crfsuite import CRF
 # + id="25b595d7-7201-42bd-abb3-3acf9731d219" editable=true slideshow={"slide_type": "fragment"}
 IPA_URL = "https://raw.githubusercontent.com/open-dict-data/ipa-dict/master/data/{lang}.txt"
 
-
 # + colab={"base_uri": "https://localhost:8080/"} id="3f45ba75-bbd3-4f13-8abf-b822fbf90dda" outputId="fa1dcad8-0851-4dad-eedd-49f1d91db7cb" editable=true slideshow={"slide_type": "fragment"}
 # ¿Como empezamos?
+response = r.get(IPA_URL.format(lang="es_MX"))
+# -
+
+ipa_list = response.text[:1000].split("\n")
+
+ipa_list[-1].split("\t")
+
 
 # + [markdown] id="c671dbe4-1f99-443a-afb9-3f92951bef35" editable=true slideshow={"slide_type": "subslide"}
 # #### Obtención y manipulación
@@ -126,7 +132,7 @@ def download_ipa_corpus(iso_lang: str) -> str:
         return ""
     return response.text
 # + editable=true slideshow={"slide_type": "subslide"}
-
+download_ipa_corpus("ar")[:100]
 
 
 # + id="0a83a2a2-8e0e-4881-98f3-b9251a6be778" editable=true slideshow={"slide_type": "subslide"}
@@ -156,7 +162,7 @@ def parse_response(response: str) -> dict:
         result[item_list[0]] = item_list[1]
     return result
 # + editable=true slideshow={"slide_type": "subslide"}
-
+es_data = parse_response(download_ipa_corpus("es_MX"))
 
 
 # + id="b834aaba-0716-41b5-935b-7f4a61e9da03" editable=true slideshow={"slide_type": "subslide"}
@@ -180,8 +186,9 @@ def get_ipa_transcriptions(word: str, dataset: dict) -> list[str]:
     """
     return dataset.get(word.lower(), "").split(", ")
 
-# + colab={"base_uri": "https://localhost:8080/"} id="d89e45e2-5010-4701-84fd-e62b910233e7" outputId="0839146b-ed76-4c0a-c7cf-078ac7278791" editable=true slideshow={"slide_type": "subslide"}
 
+# + colab={"base_uri": "https://localhost:8080/"} id="d89e45e2-5010-4701-84fd-e62b910233e7" outputId="0839146b-ed76-4c0a-c7cf-078ac7278791" editable=true slideshow={"slide_type": "subslide"}
+get_ipa_transcriptions("mayonesa", es_data)
 
 
 # + [markdown] id="37f69f04-ad55-4ca2-8bb1-d52fa58c4051" editable=true slideshow={"slide_type": "subslide"}
@@ -233,7 +240,7 @@ def get_phone_symbols_freq(dataset: dict):
 
 
 # + id="ijDBSOM5UB5i"
-freqs_es = get_phone_symbols_freq(dataset_es_mx)
+freqs_es = get_phone_symbols_freq(dataset_ja)
 # Sorted by freq number (d[1]) descendent (reverse=True)
 distribution_es = dict(sorted(freqs_es.items(), key=lambda d: d[1], reverse=True))
 df_es = pd.DataFrame.from_dict(distribution_es, orient='index')
@@ -247,8 +254,21 @@ df_es.head()
 # - Ejemplos: Casa-Caza, Vaya-Valla
 
 # + colab={"base_uri": "https://localhost:8080/"} id="-UXEnSv6700t" outputId="0e02caa7-93da-4e37-c304-f1b96073f44d" editable=true slideshow={"slide_type": "fragment"}
-# Tu código bonito aquí ✨
-# Hit: Use Counter please
+from collections import Counter
+
+transcription_counts = Counter(dataset_es_mx.values())
+duplicated_transcriptions = [
+    transcription for transcription, freq in transcription_counts.items() if freq > 1
+]
+
+for ipa in duplicated_transcriptions[-10:]:
+    words = [
+        word for word, transcription in dataset_es_mx.items() if transcription == ipa
+    ]
+    rprint(f"{ipa} => {words}")
+
+# +
+# Counter?
 
 # + [markdown] id="a6e06a95-ceb6-49c0-bcbb-ff456976e510" editable=true slideshow={"slide_type": "subslide"}
 # #### Obteniendo todos los datos
@@ -320,8 +340,13 @@ def get_formated_string(code: str, name: str):
 
 
 # + colab={"base_uri": "https://localhost:8080/", "height": 1000} id="bd09c65f-c559-4571-98a8-20c0d2c0308e" outputId="14a4e15e-43b2-4f83-8081-f5562967c8d1" editable=true slideshow={"slide_type": "fragment"}
-rprint(Panel(Text("Representación fonética de palabras", style="bold", justify="center")))
-rendable_langs = [Panel(get_formated_string(code, lang), expand=True) for code, lang in lang_codes.items()]
+rprint(
+    Panel(Text("Representación fonética de palabras", style="bold", justify="center"))
+)
+rendable_langs = [
+    Panel(get_formated_string(code, lang), expand=True)
+    for code, lang in lang_codes.items()
+]
 rprint(Columns(rendable_langs))
 
 lang = input("lang>> ")
@@ -330,14 +355,16 @@ while lang:
     dataset = corpora[lang]
     query = input(f"  [{lang}]word>> ")
     results = get_ipa_transcriptions(query, dataset)
-    rprint(query, " | ", ", ".join(results))
+    print(query, " | ", ", ".join(results))
     while query:
         query = input(f"  [{lang}]word>> ")
         if query:
             results = get_ipa_transcriptions(query, dataset)
             rprint(query, " | ", ", ".join(results))
     lang = input("lang>> ")
-    rprint(f"Selected language: [yellow]{lang_codes[lang]}[/]") if lang else rprint("Adios 👋🏼")
+    rprint(f"Selected language: [yellow]{lang_codes[lang]}[/]") if lang else rprint(
+        "Adios 👋🏼"
+    )
 
 # + [markdown] id="dc8b18ff-9d70-49a6-98c1-7feb7d0c268a" editable=true slideshow={"slide_type": "slide"}
 # #### 👩‍🔬 Ejercicio: *[Ortographic Depth](https://en.wikipedia.org/wiki/Orthographic_depth)*
@@ -352,7 +379,23 @@ while lang:
 #
 # Dónde `??` deberá mostrar el ratio (`Φ`) calculado
 # + editable=true slideshow={"slide_type": "fragment"}
-# Tu código bonito aquí ✨
+import numpy as np
+
+
+def calculate_orthographic_depth(dataset):
+    ratios = []
+    for word, ipa in dataset.items():
+        clean_ipa = ipa.strip("/").replace("ˈ", "")
+        # Ratio: Letras por Sonido
+        if len(clean_ipa) > 0:
+            ratios.append(len(word) / len(clean_ipa))
+    return np.mean(ratios)
+
+
+for iso, dataset in corpora.items():
+    rprint(f"Φ {lang_codes[iso]} = {calculate_orthographic_depth(dataset):.3f}")
+
+
 
 
 # + [markdown] editable=true slideshow={"slide_type": "fragment"}
@@ -397,9 +440,9 @@ def display_rhyming_patterns(patterns: dict[str, list]) -> None:
 # ```
 
 # + colab={"base_uri": "https://localhost:8080/"} id="057bb91d-5bef-47b4-ba82-42559f457c2b" outputId="0435b8cf-4395-438b-a78f-0f872b9cb287" editable=true slideshow={"slide_type": "fragment"}
-sentence = "If you drop the ball it will fall on the doll"
+sentence = "cuando juego con fuego siento como brilla la orilla de mi corazón"
 
-dataset = data.get("en_US")
+dataset = corpora.get("es_MX")
 rhyming_words = get_rhyming_patterns(sentence, dataset)
 display_rhyming_patterns(rhyming_words)
 
@@ -409,12 +452,12 @@ display_rhyming_patterns(rhyming_words)
 # + colab={"base_uri": "https://localhost:8080/"} id="64dc5e71-449b-4fdf-a3f4-d0f1776c5bbf" outputId="8b70a454-65b1-447d-aee3-73b1933b134b" editable=true slideshow={"slide_type": ""}
 # apt-get install -y espeak
 # !sudo pacman -S espeak-ng
+# -
+
+# !espeak  --voices
 
 # + id="c87a1b9d-848c-488f-b2e4-1782f07bc557" editable=true slideshow={"slide_type": ""}
-# !espeak --help
-
-# + [markdown] id="9fc31a40-1d6e-4c56-b07e-74a0c47a89c4" editable=true slideshow={"slide_type": "slide"}
-# ## Morfología
+# !espeak  -v roa/es-419 "Camara banda ya se la saben celulares y carteras" --ipa
 
 # + [markdown] id="GJ10fzsXvFSS" editable=true slideshow={"slide_type": ""}
 # <center><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Flexi%C3%B3nGato-svg.svg/800px-Flexi%C3%B3nGato-svg.svg.png" width=200></center>
@@ -658,6 +701,7 @@ def get_track_files(lang: str, track: str = "word") -> list[str]:
 # + editable=true slideshow={"slide_type": ""}
 
 
+
 # + id="f583e168-1f5d-4426-9789-5fac8b2b221c" editable=true slideshow={"slide_type": "subslide"}
 def get_raw_corpus(files: list) -> list:
     """Descarga y concatena los datos de los archivos tsv desde una URL base.
@@ -684,6 +728,7 @@ def get_raw_corpus(files: list) -> list:
     return result
 
 # + editable=true slideshow={"slide_type": ""}
+
 
 
 # + id="54de3b3d-be08-437d-b4ee-ff55d4fee2a9" editable=true slideshow={"slide_type": "subslide"}
@@ -720,6 +765,7 @@ def raw_corpus_to_dataframe(corpus_list: list, lang: str) -> pd.DataFrame:
     return df
 
 # + editable=true slideshow={"slide_type": ""}
+
 
 
 # + colab={"base_uri": "https://localhost:8080/"} id="fe645a77-f8ca-4bf1-b11e-2274b78ba6d1" outputId="d7e50464-31a2-4979-ca32-1ecdb7c07e5c" editable=true slideshow={"slide_type": "subslide"}
@@ -1088,9 +1134,6 @@ y_pred_flat = [label for sent_labels in y_pred for label in sent_labels]
 # Evaluate the model
 report = classification_report(y_true=y_test_flat, y_pred=y_pred_flat)
 rprint(report)
-
-# + [markdown] id="1266180c-54ca-433c-bf77-e7052df67291" editable=true slideshow={"slide_type": "slide"}
-# # Tarea 1: Exploración de Niveles del lenguaje 🔭
 
 # + [markdown] editable=true slideshow={"slide_type": "fragment"}
 # ### FECHA DE ENTREGA: 2 de Marzo 2026 at 11:59pm
