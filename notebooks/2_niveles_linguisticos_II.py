@@ -14,10 +14,10 @@
 # ---
 
 # + [markdown] editable=true id="76b3a996-772a-4be8-a8eb-f1e9ae67d03e" slideshow={"slide_type": "slide"}
-# # 1.2 Niveles Lingüísticos II
+# # 2. Niveles Lingüísticos II
 
 # + [markdown] editable=true slideshow={"slide_type": ""}
-# <a target="_blank" href="https://colab.research.google.com/github/umoqnier/cl-2026-2-lab/blob/main/notebooks/1_2_niveles_linguisticos.ipynb">
+# <a target="_blank" href="https://colab.research.google.com/github/umoqnier/cl-2026-2-lab/blob/main/notebooks/2_niveles_linguisticos_II.ipynb">
 #   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 # </a>
 
@@ -25,9 +25,16 @@
 # ## Objetivos
 
 # + [markdown] editable=true id="f034458c-9cb0-4966-a203-3145074c3fca" slideshow={"slide_type": ""}
-# - Trabajar tareas a diferentes niveles lingüísticos (Fonético, Morfólogico, Sintáctico)
-# - Manipular y recuper información de datasets disponibles en Github para resolver tareas de NLP
 # - Comparar enfoques basados en reglas y estadísticos para el análisis morfológico
+# - Los alumnæs comprenderán la importancia de las etiquetas *POS* en tareas de _NLP_
+# - Implementar un modelo de etiquetado automático
+#     - Usando modelos discriminativos _HMMs_
+#     - Usando modelos condicionales _CRFs_
+#     - Contrastar ambos enfoques para generación automática de secuencias de etiquetas
+# -
+
+# # !uv add nltk scikit-learn sklearn-crfsuite <- Local con uv
+# !pip install nltk scikit-learn sklearn-crfsuite
 
 # + editable=true slideshow={"slide_type": "subslide"}
 import re
@@ -513,13 +520,277 @@ rprint(morph_stats.sort_values(by=['prob_derivacion', "total_freq"], ascending=F
 # <center><img src="https://i.pinimg.com/originals/0e/f1/30/0ef130b255ea704625b2ad473701dee5.gif"></center
 # -
 
-# ### Etiquetado POS usando Hidden Markov Models
+# ### Materia prima de otras tareas de NLP
+#
+# - Named entity recognition (NER)
+# - Statistical language models
+# - Text generation
+# - Sentient analysis
+
+# ## Etiquetado automático POS (*POS tagging*)
+#
+# - El etiquetado POS es una tarea del NLP dónde se le asigna de forma automática una etiqueta según su función a cada palabra tomando en cuenta el contexto de la oración.
+#
+# - En esta tarea se toma en cuenta cierta estructura de la oración.
+#
+# - En un enfoque probabilístico queremos obtener: $P(\overrightarrow{x},\overrightarrow{y})$
+#
+#
+# donde:
+# - $\overrightarrow{x}$ = $<x_1,x_2,...,x_n>$
+# - $\overrightarrow{y}$ = $<y_1,y_2,...,y_n>$
+# - $x_i = palabra$ y $y_i = etiqueta\ POS$
+
+# ### Un primer acercamiento: Hidden Markov Models (HMM)
+
+# <center><img src="https://www.davidsbatista.net/assets/images/2017-11-11-HMM.png"></center>
+
+# $p(\overrightarrow{x},\overrightarrow{y}) = \displaystyle\prod_{i=1}^{n} p(y_i|y_{i-1}) ⋅ p(x_i|y_i)$
+#
+# Donde:
+# - $\overrightarrow{y} = secuencia\ de\ etiquetas\ POS$
+# - $\overrightarrow{x} = secuencia\ de\ palabras$
+
+# ### Suposición de Markov
+#
+# > "The probability of a particular state is dependent only on the previous state"
+
+# #### Características
+
+# - Clasificador secuencial
+#     - Dada una secuencia de entrada se predice la secuencia de salida más probable
+#     - Se apreden los parámetros de secuencias previamente etiquetadas
+
+# ### Componentes del framework HMM
+
+#
+# - Estados (etiquetas): $T = t_1,t_2,...,t_n$
+# - Observaciones (palabras): $W = w_1,w_2,...,w_n$
+# - Estados iniciales y finales
+
+# #### Probabilidades asociadas a estados
+
+# - Matriz $A$ con las probabilidades de ir de un estado a otro
+# - Matriz $B$ con las probabilidades de que una observasión se genera a partir de un estado
+# - Probabilidades asociadas a los estados iniciales y finales
+
+# ### ¿Qué soluciona HMM?
+
+# 1. Aprender parámetros asociados con una secuencia de observación dada (training step)
+#     - Dada una lista de palabras y sus etiquetas POS asociadas, el modelo aprende la estructura dada
+# 2. Aplicar un modelo HMM previamente entrenado
+#     - Dada una nueva oración nunca antes vista, se puede **predecir** la etiqueta POS asociada a cada palabra de dicha oración usando la estructura aprendida
+
+# ### Corpus: `cess_esp`
+
+#  TODO: Información del corpus
+#  https://www.nltk.org/book/ch02.html#tab-corpora
+#
+
+# Descargando el corpus cess_esp: https://www.nltk.org/book/ch02.html#tab-corpora
+nltk.download('cess_esp')
+
+# Cargando oraciones
+corpora = cess_esp.tagged_sents()
+
+rprint(corpora[1])
+
 
 # +
-# TODO
+def get_tags_map() -> dict:
+    tags_raw = r.get(
+        "https://gist.githubusercontent.com/vitojph/39c52c709a9aff2d1d24588aba7f8155/raw/af2d83bc4c2a7e2e6dbb01bd0a10a23a3a21a551/universal_tagset-ES.map"
+    ).text.split("\n")
+    tags_map = {line.split("\t")[0].lower(): line.split("\t")[1] for line in tags_raw}
+    return tags_map
 
-# + [markdown] editable=true id="522e2222-af00-4315-82ce-11534116f0b8" slideshow={"slide_type": "subslide"}
-# ### Etiquetado POS usando Conditional Random Fields (CRFs)
+
+def map_tag(tag: str, tags_map=get_tags_map()) -> str:
+    return tags_map.get(tag.lower(), "N/F")
+
+
+def parse_tags(corpora: list[list[tuple]]) -> list[list[tuple]]:
+    result = []
+    for sentence in corpora:
+        result.append([(word, map_tag(tag)) for word, tag in sentence])
+    return result
+
+
+# -
+
+corpora = parse_tags(corpora)
+
+rprint(corpora[0])
+
+len(corpora)
+
+# ### Implementación de HMMs
+
+# Separando en dos conjuntos, uno para entrenamiento y otro para pruebas
+train_data, test_data = train_test_split(corpora, test_size=0.3, random_state=42)
+
+# Comprobemos la longitud de la data
+len(train_data), len(test_data)
+
+len(train_data) + len(test_data) == len(corpora)
+
+# #### Entrenamiento
+
+# +
+from nltk.tag import hmm
+
+# Creando el modelo HMM usando nltk
+trainer = hmm.HiddenMarkovModelTrainer()
+
+# Hora de entrenar
+hmm_model = trainer.train(train_data)
+# -
+
+# #### Resultados
+
+tagged_test_data = hmm_model.tag_sents([[word for word, _ in sent] for sent in test_data])
+
+tagged_test_data[0]
+
+# Extrayendo tags verdaderas vs tags predichas
+y_true = [tag for sent in test_data for _, tag in sent]
+y_pred = [tag for sent in tagged_test_data for _, tag in sent]
+
+y_true[:3]
+
+y_pred[:3]
+
+
+def report_accuracy(y_true: list, y_pred: list) -> defaultdict:
+
+    label_accuracy_counts = defaultdict(lambda: {"correct": 0, "total": 0})
+
+    for gold_tag, predicted_tag in zip(y_true, y_pred):
+        label_accuracy_counts[gold_tag]["total"] += 1
+        if gold_tag == predicted_tag:
+            label_accuracy_counts[gold_tag]["correct"] += 1
+    
+    # Calculate and display the accuracy for each label
+    print("Label\tAccuracy")
+    for label, counts in label_accuracy_counts.items():
+        accuracy = counts["correct"] / counts["total"] if counts["total"] > 0 else 0.0
+        print(f"{label}\t{accuracy * 100:.2f}%")
+    return label_accuracy_counts
+
+
+label_accuracy_counts = report_accuracy(y_true, y_pred)
+
+# ### Hablemos de Métricas
+
+# #### Confusion Matrix (binaria)
+#
+# Es una forma tabular de vizualizar el desempeño de un modelo de *Machine Learning (ML)*. En las columnas tenemos la cuenta de etiquetas predichas mientras que en las filas tenemos la cuenta de las etiquetas reales (o viceversa)
+
+# ![](https://i1.wp.com/dataaspirant.com/wp-content/uploads/2020/08/3_confusion_matrix.png?ssl=1)
+
+# - **TP:** Etiquetas correctamente predichas como positivas. Ej: Se etiqueto un correo como spam y era spam
+# - **FP:** Etiquetas incorrectamente predichas. Ej: Se etiqueto un correo como spam y NO era spam
+# - **TN:** Etiquetas correctamente predichas como negativas. Ej: Se etiqueto un correo como no spam y era no spam
+# - **FN:** Etiquetas incorrectamente predichas como negativas. Ej: Se etiqueto un correo como no spam y era spam
+
+# #### Accuracy = $\frac{TP + TN}{TP + TN + FP + FN}$
+#
+# Es una de las métricas más sencillas usadas en *ML*. Define que tan exacto es el modelo. Por ejemplo, si de 100 etiquetas el modelo acerto en 90 tendremos un accuracy de 0.90 o 90%
+
+from sklearn.metrics import accuracy_score
+print(accuracy_score(y_pred_flat, y_test_flat))
+
+# #### Precision = $\frac{TP}{TP + FP}$
+#
+# Indica la relación entre las predicciones positivas correctas (SPAM es SPAM) con el total de predicciones de la clase sin importar si fueron correctas o no (Todo lo que fue marcado como SPAM correctamente con todo lo que fue marcado como SPAM incorrectamente). *De los correos etiquetados como SPAM cuandos fueron efectivamente SPAM*
+
+from sklearn.metrics import precision_score
+print(precision_score(y_pred_flat, y_test_flat, average="macro"))
+
+# #### Recall = $\frac{TP}{TP + FN}$
+#
+# Indica la relacion entre las predicciones positivas correctas con el total de predicciones incorrectas de otras clases (Todo lo que no se marco como SPAM cuando si era SPAM). *Todos los correos que en realidad eran SPAM*
+
+from sklearn.metrics import recall_score
+print(recall_score(y_pred_flat, y_test_flat, average="macro"))
+
+# #### F1-score = $\frac{2PR}{P + R}$
+#
+# Es el promedio ponderado entre *precision* y *recall*. Toma en cuenta tanto los FP como los FN.
+
+from sklearn.metrics import f1_score
+print(f1_score(y_pred_flat, y_test_flat, average="macro"))
+
+# #### Un ejemplo concreto
+
+nltk.download('punkt')
+
+# +
+#unseen_sentence = "La casa es grande y luminosa."
+unseen_sentence = "La muchacha vio al dinosaurio con el telescopio"
+#unseen_sentence = "El gato rie malvadamente"
+
+# Tokenizando
+tokenized_sentence = nltk.word_tokenize(unseen_sentence)
+
+# Haciendo predicciones
+predicted_tags = [tag for word, tag in hmm_model.tag(tokenized_sentence)]
+
+print("Palabra \tPOS Tag (predicha)")
+for word, tag in zip(tokenized_sentence, predicted_tags):
+    print(f"{word}\t{tag}")
+# -
+
+# #### Comparando con modelos pre-entrenados
+
+# - [Model information](https://spacy.io/models/es)
+
+# !python -m spacy download es_core_news_sm
+
+# +
+import spacy
+# spacy.cli.download("") # Direct from python
+
+nlp = spacy.load("es_core_news_sm")
+doc = nlp(unseen_sentence)
+print([(w.text, w.pos_) for w in doc])
+# -
+
+from spacy import displacy
+displacy.render(doc, style="dep", jupyter=True)
+
+test_sentences = [" ".join([word for word, _ in sent]) for sent in test_data][:10]
+
+docs = [nlp(sent) for sent in test_sentences]
+
+for doc in docs[:1]:
+    print()
+    print([(w.text, w.pos_) for w in doc])
+
+tagged_test_data[0]
+
+y_spacy_pred = []
+for doc in docs:
+    y_spacy_pred.extend([word.pos_ for word in doc])
+
+y_spacy_pred[:3]
+
+label_count = report_accuracy(y_true, y_spacy_pred)
+
+label_count
+
+
+# ### ¿Limitaciones?
+
+# - Cada estado depende exclusivamente de su predecesor inmediato
+#     - Dependencias limitadas
+# - Cada observación depende exclusivamente del estado actual
+# - Probabilidades estáticas
+#     - Ejemplo, si veo un par de tags `(V) -> (S)` no importa si esta al inicio, en medio o al final de la oración la probabilidad siempre será la misma
+
+# ![](https://3.bp.blogspot.com/-pPGGqs462yw/T1ol64kj9uI/AAAAAAAAAKI/CDCiH1IJodE/w1200-h630-p-k-nu/patricio.jpg)
+
+# ## Sobrepasando las fronteras: _Conditional Random Fields (CRFs)_
 
 # + [markdown] editable=true id="2276eafd-a3e4-48a8-b97a-359503a7d66f" slideshow={"slide_type": "fragment"}
 # - Modelo de gráficas **no dirigido**. Generaliza los *HMM*
@@ -596,51 +867,6 @@ rprint(morph_stats.sort_values(by=['prob_derivacion', "total_freq"], ascending=F
 # + [markdown] editable=true id="1c50c45f-9e37-42e0-9cfe-1a78429660ed" slideshow={"slide_type": "subslide"}
 # ### Implementación de CRFs
 
-# + colab={"base_uri": "https://localhost:8080/"} editable=true id="ca05605b-7776-4fc8-9e6a-7541a28d659f" outputId="bf87417f-828e-499d-98e6-50f438c9dc9a" slideshow={"slide_type": "fragment"}
-# !uv add nltk scikit-learn sklearn-crfsuite
-
-# + [markdown] editable=true id="b2e0fb29-beee-4a0a-8010-0f62db206981" slideshow={"slide_type": "subslide"}
-# #### Obteniendo otro corpus más
-
-# + colab={"base_uri": "https://localhost:8080/"} editable=true id="5651f7bc-21de-4379-93b8-07499f6df74a" outputId="86fd3488-9802-4fca-b9fd-241091a3b405" slideshow={"slide_type": "fragment"}
-# Descargando el corpus cess_esp: https://www.nltk.org/book/ch02.html#tab-corpora
-nltk.download('cess_esp')
-
-# + editable=true id="1ab197a8-2ea3-4d85-acf8-745d6f99be83" slideshow={"slide_type": "fragment"}
-# Cargando oraciones
-corpora = cess_esp.tagged_sents()
-
-# + colab={"base_uri": "https://localhost:8080/"} editable=true id="We80idF3qUIb" outputId="57544344-2f95-44f4-e8b7-486c7b6631b3" slideshow={"slide_type": "fragment"}
-corpora[1]
-
-
-# + editable=true id="45d7a052-6e9e-47ca-8fc2-13ff05963b53" slideshow={"slide_type": "subslide"}
-def get_tags_map() -> dict:
-    tags_raw = r.get(
-        "https://gist.githubusercontent.com/vitojph/39c52c709a9aff2d1d24588aba7f8155/raw/af2d83bc4c2a7e2e6dbb01bd0a10a23a3a21a551/universal_tagset-ES.map"
-    ).text.split("\n")
-    tags_map = {line.split("\t")[0].lower(): line.split("\t")[1] for line in tags_raw}
-    return tags_map
-
-
-def map_tag(tag: str, tags_map=get_tags_map()) -> str:
-    return tags_map.get(tag.lower(), "N/F")
-
-
-def parse_tags(corpora: list[list[tuple]]) -> list[list[tuple]]:
-    result = []
-    for sentence in corpora:
-        result.append([(word, map_tag(tag)) for word, tag in sentence])
-    return result
-
-
-# + editable=true id="c07cc1fb-8b6d-4a3d-a637-93c15bcbbfc6" slideshow={"slide_type": "subslide"}
-corpora = parse_tags(corpora)
-
-# + colab={"base_uri": "https://localhost:8080/"} editable=true id="d2347079-1504-458b-9743-5bc4dfa7d1e6" outputId="b4a40eb1-b9ff-423c-914f-b315097e7ee6" slideshow={"slide_type": ""}
-rprint(corpora[0])
-
-
 # + [markdown] editable=true id="d7864024-2275-4cf6-93f4-16c6b0f54451" slideshow={"slide_type": "subslide"}
 # #### Feature lists
 
@@ -703,6 +929,9 @@ X_train, X_test, y_train, y_test = train_test_split(
 # + editable=true id="49503189-368e-4d83-abd2-b06433bae3e8" slideshow={"slide_type": "fragment"}
 assert len(X_train) + len(X_test) == len(corpora), "Something wrong with my split :("
 assert len(y_train) + len(y_test) == len(corpora), "Something wrong with my split :("
+# -
+
+# #### Entrenamiento
 
 # + colab={"base_uri": "https://localhost:8080/"} editable=true id="cba343a2-482f-4c67-a842-704ab5fc6f3e" outputId="3355fa0f-d2f3-4c66-de0b-595c8b754495" slideshow={"slide_type": "subslide"}
 # Initialize and train the CRF tagger: https://sklearn-crfsuite.readthedocs.io/en/latest/api.html
@@ -718,6 +947,9 @@ try:
     crf.fit(X_train, y_train)
 except AttributeError as e:
     print(e)
+# -
+
+# #### Evaluación
 
 # + colab={"base_uri": "https://localhost:8080/"} editable=true id="983f2a29-b455-4ca3-8115-eb4962e25481" outputId="d59aff27-781e-4b97-f262-7f39845c7e88" slideshow={"slide_type": "subslide"}
 y_pred = crf.predict(X_test)
@@ -734,7 +966,7 @@ rprint(report)
 # # Tarea 1: Exploración de Niveles del lenguaje 🔭
 
 # + [markdown] editable=true slideshow={"slide_type": "fragment"}
-# ### FECHA DE ENTREGA: 2 de Marzo 2026 at 11:59pm
+# ### FECHA DE ENTREGA: 10 de Marzo 2026 at 11:59pm
 
 # + [markdown] editable=true slideshow={"slide_type": "fragment"}
 # ### Fonética
