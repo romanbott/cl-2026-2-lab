@@ -66,7 +66,7 @@ from sklearn_crfsuite import CRF
 # Los elementos morfológicos son analizados para:
 #
 # - Determinar la función morfológica de las palabras
-# - Hacer filtrado y pre-procesamiento de text
+# - Hacer filtrado y pre-procesamiento de texto
 
 # + [markdown] editable=true id="d962a952-6fa8-4410-82b6-8e7c6ba2f7e4" slideshow={"slide_type": "subslide"}
 # ### Análisis morfológico basado en reglas
@@ -98,23 +98,23 @@ from sklearn_crfsuite import CRF
 
 # + editable=true id="1e2959df-96a4-40f5-a932-108abad269be" slideshow={"slide_type": "subslide"}
 palabras = [
-    'niño',
-    'niños',
-    'niñas',
-    'niñitos',
-    'gato',
-    'gatos',
-    'gatitos',
-    'perritos',
-    'paloma',
-    'palomita',
-    'palomas',
-    'flores',
-    'flor',
-    'florecita',
-    'lápiz',
-    'lápices',
-    # 'chiquitititititos',
+    "niño",
+    "niños",
+    "niñas",
+    "niñitos",
+    "gato",
+    "gatos",
+    "gatitos",
+    "perritos",
+    "paloma",
+    "palomita",
+    "palomas",
+    "flores",
+    "flor",
+    "florecita",
+    "lápiz",
+    "lápices",
+    #"chiquitititititos",
     #'curriculum', # curricula
     #'campus', # campi
 ]
@@ -211,7 +211,7 @@ for palabra, parseo in zip(palabras, morph_parsing):
 # + [markdown] editable=true id="78102f5e-2bcc-41cd-981f-514d786cb9be" slideshow={"slide_type": "fragment"}
 # - Shared task donde se buscaba convertir las palabras en una secuencia de morfemas
 # - Dividido en dos partes:
-#     - Segmentación a nivel de palabras (nos enfocaremos en esta)
+#     - Segmentación a nivel de palabras ☀️
 #     - Segmentación a nivel oraciones
 
 # + [markdown] editable=true id="c6b0c352-e6ac-49db-9b3a-74da7db6ddad" slideshow={"slide_type": "subslide"}
@@ -233,18 +233,9 @@ for palabra, parseo in zip(palabras, morph_parsing):
 
 # + colab={"base_uri": "https://localhost:8080/", "height": 35} editable=true id="1a59cbf7-de9d-4618-8229-5cd369fa1c07" outputId="740f54b5-52b8-4665-863a-0969ec99fd86" slideshow={"slide_type": "fragment"}
 response = r.get("https://raw.githubusercontent.com/sigmorphon/2022SegmentationST/main/data/spa.word.test.gold.tsv")
-response.text[:100]
+# -
 
-# + colab={"base_uri": "https://localhost:8080/", "height": 35} editable=true id="17faa0d5-2d5f-4035-bf65-c0e5b256aa0f" outputId="29c6287e-391d-4346-f843-874766bb1a9c" slideshow={"slide_type": "fragment"}
-raw_data = response.text.split("\n")
-raw_data[-2]
 
-# + colab={"base_uri": "https://localhost:8080/"} editable=true id="a1814873-5c65-4f34-9c59-01ccdf130089" outputId="80ca7d49-9053-4b41-a383-e1fc40749cb5" slideshow={"slide_type": "fragment"}
-element = raw_data[2].split("\t")
-element
-
-# + colab={"base_uri": "https://localhost:8080/"} editable=true id="99c1dfb3-a1ad-4a78-b26b-8a560894f058" outputId="da0bb22f-5ea6-4e65-e8fe-a8acfd829fc2" slideshow={"slide_type": "fragment"}
-element[1].split()
 
 # + editable=true id="bb87e719-41c2-4e22-b9bf-5303902be165" slideshow={"slide_type": "subslide"}
 LANGS = {
@@ -375,19 +366,7 @@ df.head(20)
 # + [markdown] editable=true id="0ffef737-bd71-43ed-be6d-a357819ab7c8" slideshow={"slide_type": "subslide"}
 # #### Análisis cuantitativo para el Español
 
-# + colab={"base_uri": "https://localhost:8080/", "height": 384} editable=true id="e02c54b1-8b19-4a37-8a64-37749beb0418" outputId="979c36e3-eace-4040-f56a-c749ad5e0fb3" slideshow={"slide_type": "fragment"}
-print("Total unique words:", len(df["words"].unique()))
-df["category"].value_counts().head(30)
-
 # + colab={"base_uri": "https://localhost:8080/"} editable=true id="39965a92-4719-4043-919b-3b99dca0b8f9" outputId="bac4b6a4-efa9-40ce-ac86-51939ec0d6bd" slideshow={"slide_type": "fragment"}
-df["word_len"].mean()
-
-# + colab={"base_uri": "https://localhost:8080/", "height": 472} editable=true id="baf02d64-9bc1-4135-9f05-e523728ba269" outputId="d9774960-1726-44e7-cb31-d7061716f52f" slideshow={"slide_type": "fragment"}
-plt.hist(df['word_len'], bins=10, edgecolor='black')
-plt.xlabel('Word Length')
-plt.ylabel('Frequency')
-plt.title('Word Length Distribution')
-plt.show()
 
 
 # + editable=true id="c902ecf4-889a-4082-b4b8-0cb89ba9b16c" slideshow={"slide_type": "subslide"}
@@ -420,7 +399,7 @@ def plot_histogram(df, kind, lang):
 
 
 # + colab={"base_uri": "https://localhost:8080/", "height": 487} editable=true id="1f36d2ce-cca3-49f0-b989-69dae98f9646" outputId="b3648c42-99eb-452c-fb85-d73218829014" slideshow={"slide_type": "subslide"}
-plot_histogram(df, "category", "spa")
+plot_histogram(df, "category", "spanish")
 
 
 # + [markdown] editable=true slideshow={"slide_type": "subslide"}
@@ -432,6 +411,8 @@ plot_histogram(df, "category", "spa")
 
 # + editable=true slideshow={"slide_type": "subslide"}
 def analyze_morpheme_types(df: pd.DataFrame) -> pd.DataFrame:
+    """Calcula y obtiene las probabilidades de que un morfema sea flexivo o derivativo.
+    """
     inflection_counts = defaultdict(int)
     derivation_counts = defaultdict(int)
     total_counts = defaultdict(int)
@@ -561,7 +542,7 @@ rprint(morph_stats.sort_values(by=['prob_derivacion', "total_freq"], ascending=F
 #     - Dada una secuencia de entrada se predice la secuencia de salida más probable
 #     - Se apreden los parámetros de secuencias previamente etiquetadas
 
-# ### Componentes del framework HMM
+# ### Componentes del los *HMM*
 
 #
 # - Estados (etiquetas): $T = t_1,t_2,...,t_n$
@@ -583,21 +564,22 @@ rprint(morph_stats.sort_values(by=['prob_derivacion', "total_freq"], ascending=F
 
 # ### Corpus: `cess_esp`
 
-#  TODO: Información del corpus
-#  https://www.nltk.org/book/ch02.html#tab-corpora
+# Corpus con 1M de palabras etiquetadas para Español y Catalán - https://www.nltk.org/book/ch02.html#tab-corpora
 #
 
-# Descargando el corpus cess_esp: https://www.nltk.org/book/ch02.html#tab-corpora
+# Descargando el corpus cess_esp
 nltk.download('cess_esp')
 
 # Cargando oraciones
 corpora = cess_esp.tagged_sents()
 
-rprint(corpora[1])
+corpora[1][:5]
 
 
 # +
 def get_tags_map() -> dict:
+    """sauce https://gist.github.com/vitojph/39c52c709a9aff2d1d24588aba7f8155/
+    """
     tags_raw = r.get(
         "https://gist.githubusercontent.com/vitojph/39c52c709a9aff2d1d24588aba7f8155/raw/af2d83bc4c2a7e2e6dbb01bd0a10a23a3a21a551/universal_tagset-ES.map"
     ).text.split("\n")
@@ -606,6 +588,8 @@ def get_tags_map() -> dict:
 
 
 def map_tag(tag: str, tags_map=get_tags_map()) -> str:
+    if tags_map.get(tag.lower()) == ".":
+        return "PUNCT"
     return tags_map.get(tag.lower(), "N/F")
 
 
@@ -620,7 +604,7 @@ def parse_tags(corpora: list[list[tuple]]) -> list[list[tuple]]:
 
 corpora = parse_tags(corpora)
 
-rprint(corpora[0])
+corpora[0]
 
 len(corpora)
 
@@ -632,7 +616,7 @@ train_data, test_data = train_test_split(corpora, test_size=0.3, random_state=42
 # Comprobemos la longitud de la data
 len(train_data), len(test_data)
 
-len(train_data) + len(test_data) == len(corpora)
+assert len(train_data) + len(test_data) == len(corpora), "Something is wrong with the split :("
 
 # #### Entrenamiento
 
@@ -662,7 +646,7 @@ y_pred[:3]
 
 
 def report_accuracy(y_true: list, y_pred: list) -> defaultdict:
-
+    """Construye un reporte de exactitud por etiqueta."""
     label_accuracy_counts = defaultdict(lambda: {"correct": 0, "total": 0})
 
     for gold_tag, predicted_tag in zip(y_true, y_pred):
@@ -688,46 +672,50 @@ label_accuracy_counts = report_accuracy(y_true, y_pred)
 
 # ![](https://i1.wp.com/dataaspirant.com/wp-content/uploads/2020/08/3_confusion_matrix.png?ssl=1)
 
-# - **TP:** Etiquetas correctamente predichas como positivas. Ej: Se etiqueto un correo como spam y era spam
-# - **FP:** Etiquetas incorrectamente predichas. Ej: Se etiqueto un correo como spam y NO era spam
-# - **TN:** Etiquetas correctamente predichas como negativas. Ej: Se etiqueto un correo como no spam y era no spam
-# - **FN:** Etiquetas incorrectamente predichas como negativas. Ej: Se etiqueto un correo como no spam y era spam
+# - **TP:** Etiquetas correctamente predichas como positivas.
+#     - Ej: Se etiqueto un correo como spam y era spam
+# - **FP:** Etiquetas incorrectamente predichas. 
+#     - Ej: Se etiqueto un correo como spam y NO era spam
+# - **TN:** Etiquetas correctamente predichas como negativas.
+#     - Ej: Se etiqueto un correo como no spam y era no spam
+# - **FN:** Etiquetas incorrectamente predichas como negativas.
+#     - Ej: Se etiqueto un correo como no spam y era spam
 
 # #### Accuracy = $\frac{TP + TN}{TP + TN + FP + FN}$
 #
 # Es una de las métricas más sencillas usadas en *ML*. Define que tan exacto es el modelo. Por ejemplo, si de 100 etiquetas el modelo acerto en 90 tendremos un accuracy de 0.90 o 90%
 
 from sklearn.metrics import accuracy_score
-print(accuracy_score(y_pred_flat, y_test_flat))
+print(accuracy_score(y_pred, y_true))
 
 # #### Precision = $\frac{TP}{TP + FP}$
 #
 # Indica la relación entre las predicciones positivas correctas (SPAM es SPAM) con el total de predicciones de la clase sin importar si fueron correctas o no (Todo lo que fue marcado como SPAM correctamente con todo lo que fue marcado como SPAM incorrectamente). *De los correos etiquetados como SPAM cuandos fueron efectivamente SPAM*
 
 from sklearn.metrics import precision_score
-print(precision_score(y_pred_flat, y_test_flat, average="macro"))
+print(precision_score(y_pred, y_true, average="macro"))
 
 # #### Recall = $\frac{TP}{TP + FN}$
 #
 # Indica la relacion entre las predicciones positivas correctas con el total de predicciones incorrectas de otras clases (Todo lo que no se marco como SPAM cuando si era SPAM). *Todos los correos que en realidad eran SPAM*
 
 from sklearn.metrics import recall_score
-print(recall_score(y_pred_flat, y_test_flat, average="macro"))
+print(recall_score(y_pred, y_true, average="macro"))
 
 # #### F1-score = $\frac{2PR}{P + R}$
 #
 # Es el promedio ponderado entre *precision* y *recall*. Toma en cuenta tanto los FP como los FN.
 
 from sklearn.metrics import f1_score
-print(f1_score(y_pred_flat, y_test_flat, average="macro"))
+print(f1_score(y_pred, y_true, average="macro"))
 
 # #### Un ejemplo concreto
 
-nltk.download('punkt')
+nltk.download('punkt_tab')
 
 # +
-#unseen_sentence = "La casa es grande y luminosa."
-unseen_sentence = "La muchacha vio al dinosaurio con el telescopio"
+unseen_sentence = "La casa es grande y luminosa."
+#unseen_sentence = "La muchacha vio al dinosaurio con el telescopio"
 #unseen_sentence = "El gato rie malvadamente"
 
 # Tokenizando
@@ -768,16 +756,6 @@ for doc in docs[:1]:
     print([(w.text, w.pos_) for w in doc])
 
 tagged_test_data[0]
-
-y_spacy_pred = []
-for doc in docs:
-    y_spacy_pred.extend([word.pos_ for word in doc])
-
-y_spacy_pred[:3]
-
-label_count = report_accuracy(y_true, y_spacy_pred)
-
-label_count
 
 
 # ### ¿Limitaciones?
@@ -877,19 +855,12 @@ def word_to_features(sent, i):
         "word.lower()": word.lower(),
         "word[-3:]": word[-3:],
         "word[-2:]": word[-2:],
-        "prefix_1": word[:1],
-        "prefix_2": word[:2],
-        "word.isupper()": word.isupper(),
-        "word.istitle()": word.istitle(),
-        "word.isdigit()": word.isdigit(),
-        "word_len": len(word),
     }
     if i > 0:
         prev_word = sent[i - 1][0]
         features.update(
             {
                 "prev_word.lower()": prev_word.lower(),
-                "prev_word.istitle()": prev_word.istitle(),
             }
         )
     else:
@@ -908,17 +879,24 @@ def sent_to_labels(sent) -> list:
 
 
 # + colab={"base_uri": "https://localhost:8080/"} editable=true id="59da4b3c-7d1d-4725-936c-0afdbf74137f" outputId="8c9c0967-e2d2-4681-849b-dc4a9796bfff" slideshow={"slide_type": "subslide"}
-# ¿Cuantas oraciones tenemos disponibles?
 len(corpora)
+# -
+
+corpora[0]
 
 # + editable=true id="7266b709-0287-4f48-a62f-12ca9d7aaffb" slideshow={"slide_type": "fragment"}
 # Preparando datos para el CRF
-X = [[word_to_features(sent, i) for i in range(len(sent))] for sent in corpora]
-y = [[pos for _, pos in sent] for sent in corpora]
+X = [sent_to_features(sent) for sent in corpora]
+y = [sent_to_labels(sent) for sent in corpora]
 
 # + colab={"base_uri": "https://localhost:8080/"} editable=true id="f7f68f41-8ad8-42c4-b20d-626561047433" outputId="884befed-36dd-465f-ff62-ee8fee034187" slideshow={"slide_type": "fragment"}
 # Exploración de data estructurada
-rprint(X[0])
+print(X[0][0])
+print(len(X[0]))
+# -
+
+print(y[0][0])
+print(len(y[0]))
 
 # + editable=true id="e6bdf707-c7fc-408b-9d81-65528e068cbb" slideshow={"slide_type": "subslide"}
 # Split the data into training and testing sets
@@ -937,10 +915,8 @@ assert len(y_train) + len(y_test) == len(corpora), "Something wrong with my spli
 # Initialize and train the CRF tagger: https://sklearn-crfsuite.readthedocs.io/en/latest/api.html
 crf = CRF(
     algorithm="lbfgs",
-    c1=0.1,
-    c2=0.1,
-    max_iterations=100,
-    all_possible_transitions=True,
+    c2=0.001,
+    max_iterations=10,
     verbose=True,
 )
 try:
@@ -961,6 +937,21 @@ y_pred_flat = [label for sent_labels in y_pred for label in sent_labels]
 # Evaluate the model
 report = classification_report(y_true=y_test_flat, y_pred=y_pred_flat)
 rprint(report)
+# -
+
+# #### Ejercicio 🗺️: Experimentación y prueba del *CRF*
+#
+# - Experimentación
+#     - Agrega más características a la función `word_to_features()`
+#         - ¿Qué características pueden ser útiles?
+#     - Experimenta con diferentes hiperparámetros del CRF
+#     - En ambos casos observa cómo afectan su rendimiento
+# - Prueba
+#     - Usando el mejor modelo aprendido por el CRF etiqueta una oración desafiante
+#     - Imprime el resultado
+#     - ¿Las etiquetas son corretas? 
+
+
 
 # + [markdown] editable=true id="1266180c-54ca-433c-bf77-e7052df67291" slideshow={"slide_type": "slide"}
 # # Tarea 1: Exploración de Niveles del lenguaje 🔭
@@ -971,7 +962,7 @@ rprint(report)
 # + [markdown] editable=true slideshow={"slide_type": "fragment"}
 # ### Fonética
 #
-# 1. Con base en el sistema de búsqueda visto en clase que recibe una palabra ortográfica y devuelve sus transcripciones fonológicas, proponga una solución para los casos en que la palabra buscada no se encuentra en el lexicón/diccionario.
+# 1. Con base en el sistema de búsqueda visto en la [práctica 1](https://github.com/umoqnier/cl-2026-2-lab/blob/main/notebooks/1_niveles_linguisticos_I.ipynb), dónde se recibe una palabra ortográfica y devuelve sus transcripciones fonológicas, proponga una solución para los casos en que la palabra buscada no se encuentra en el lexicón/diccionario.
 #     - ¿Cómo devolver o **aproximar** su transcripción fonológica?
 #     - Reutiliza el sistema de búsqueda visto en clase y mejóralo con esta funcionalidad.
 #     - Muestra al menos tres ejemplos
